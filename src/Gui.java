@@ -33,6 +33,8 @@ public class Gui
 	JCheckBox mDisableNewPollCheckbox;
 	JCheckBox mEnableColdstartCheckbox;
 	JCheckBox mResetAtarimaxCheckbox;
+	JCheckBox mBasicOffCheckbox;
+	JCheckBox mHiSpeedCheckbox;
 	
 	Patcher mPatcher;
 	
@@ -49,7 +51,7 @@ public class Gui
 	
 	void createAndShow()
 	{
-		mFrame = new JFrame("SIO2BT OS Patcher V3.1 Montezuma 2014-2017");
+		mFrame = new JFrame("SIO2BT OS Patcher V3.3 Montezuma 2014-2019, Hi-Speed Code V1.31 HIAS 2010");
 		mPanel = new JPanel();
 		mFileLabel = new JLabel("File:                                                                                          ");
 		mOSLabel = new JLabel("OS:");
@@ -91,6 +93,17 @@ public class Gui
 		    					mResetAtarimaxCheckbox.setEnabled(coldStart && atarimaxReset);
 		    					mResetAtarimaxCheckbox.setSelected(coldStart && atarimaxReset);
 		    					mPatcher.setResetAtarimax(coldStart && atarimaxReset);
+		    					
+		    					boolean basic_ivertable = mPatcher.isBasicInvertable();
+		    					mBasicOffCheckbox.setEnabled(basic_ivertable);
+		    					boolean basic_off = mPatcher.isBasicOff();
+		    					mBasicOffCheckbox.setSelected(basic_off);
+		    					mPatcher.setDisableBasic(basic_off);
+		    					
+		    					boolean hispeed_patchable = mPatcher.isHiSpeedPatchable();
+		    					mHiSpeedCheckbox.setEnabled(hispeed_patchable);
+		    					mHiSpeedCheckbox.setSelected(hispeed_patchable);
+		    					mPatcher.setEnableHiSpeedPatch(hispeed_patchable);
 		    				}
 		    				else
 		    				{
@@ -186,7 +199,23 @@ public class Gui
 			}
 		});
 		mOptionPanel.add(mResetAtarimaxCheckbox);		
-	
+
+		mBasicOffCheckbox = new JCheckBox("Default: Basic Off");
+		mBasicOffCheckbox.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				mPatcher.setDisableBasic((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		mOptionPanel.add(mBasicOffCheckbox);
+		
+		mHiSpeedCheckbox = new JCheckBox("Enable HiSpeed");
+		mHiSpeedCheckbox.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				mPatcher.setEnableHiSpeedPatch((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		mOptionPanel.add(mHiSpeedCheckbox);
+		
 		mFrame.getContentPane().add(mOSLabel, BorderLayout.NORTH);
 		mFrame.getContentPane().add(mPanel, BorderLayout.CENTER);
 		mFrame.getContentPane().add(mOptionPanel, BorderLayout.EAST);
@@ -208,9 +237,15 @@ public class Gui
 		mDisableNewPollCheckbox.setSelected(false);
 		mEnableColdstartCheckbox.setSelected(false);
 		mResetAtarimaxCheckbox.setSelected(false);
+		mBasicOffCheckbox.setSelected(false);
+		mHiSpeedCheckbox.setSelected(false);
+
 		mPatcher.setDisableNewPoll(false);
 		mPatcher.setEnableColdStart(false);
 		mPatcher.setResetAtarimax(false);
+		mPatcher.setDisableBasic(false);
+		mPatcher.setEnableHiSpeedPatch(false);
+		
 		disableGUIControls();
 	}
 	
@@ -222,6 +257,8 @@ public class Gui
 		mDisableNewPollCheckbox.setEnabled(false);
 		mEnableColdstartCheckbox.setEnabled(false);
 		mResetAtarimaxCheckbox.setEnabled(false);
+		mBasicOffCheckbox.setEnabled(false);
+		mHiSpeedCheckbox.setEnabled(false);
 	}
 	
 }
