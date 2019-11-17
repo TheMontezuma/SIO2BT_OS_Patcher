@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 public class Patcher
 {
@@ -455,13 +456,16 @@ public class Patcher
 	{
 		switch(mOSType)
 		{
+		case e800A_PAL:
+		case e800B_PAL:
+		case e800A_NTSC:
+		case e800B_NTSC:
 		case eBB1R2:
 		case eBB1R3:
 			return true;
 		default:
 			return false;
 		}
-		
 	}
 	
 	boolean patch()
@@ -550,10 +554,49 @@ public class Patcher
 
 	private void patch10KOS(int CRETRI1, int CRETRI2, int CTIM)
 	{
-		int offset = 0xD800;
-		mOS[CRETRI1-offset] = (byte)mRetry;
-		mOS[CRETRI2-offset] = (byte)mRetry;
-		mOS[CTIM-offset]    = (byte)mTimeout;
+		mOS[CRETRI1-0xD800] = (byte)mRetry;
+		mOS[CRETRI2-0xD800] = (byte)mRetry;
+		mOS[CTIM-0xD800]    = (byte)mTimeout;
+		
+		if(isHiSpeedPatchable())
+		{
+			if(mPatchHiSpeed)
+			{
+				int offset = 0xC000;
+				byte [] tmp = new byte[0x4000];
+				if(mOSFillment!=null)
+				{
+					System.arraycopy(mOSFillment, 0, tmp , 0, 0x1800);
+				}
+				else
+				{
+					Arrays.fill(tmp, (byte)0xFF);
+				}
+				System.arraycopy(mOS, 0, tmp , 0x1800, 0x2800);
+		
+				// copy highspeed SIO code to ROM OS
+				System.arraycopy(HiSpeed.hispeed_code, 0, tmp, HiSpeed.HIBASE-offset, HiSpeed.hispeed_code.length);
+				
+				// patch timeout and retries in HI SPEED code
+				tmp[0xCD29-offset] = (byte)mRetry;
+				tmp[0xCE51-offset] = (byte)mRetry;
+				tmp[0xCE83-offset] = (byte)mTimeout;
+				
+				// copy old standard SIO code to highspeed SIO code
+				System.arraycopy(tmp, HiSpeed.OLD_SIO-offset, tmp, HiSpeed.HISTDSIO-offset, HiSpeed.newcode.length);
+
+				// add "jump to old code + 4"
+				System.arraycopy(HiSpeed.old_oldcode, 0, tmp, HiSpeed.HISTDSIO+HiSpeed.newcode.length-offset, HiSpeed.old_oldcode.length);
+
+				// change old SIO code
+				System.arraycopy(HiSpeed.newcode, 0, tmp, HiSpeed.OLD_SIO-offset, HiSpeed.newcode.length);
+				
+				mOSFillment = new byte[0x1800];
+				System.arraycopy(tmp, 0, mOSFillment, 0, 0x1800);
+				System.arraycopy(tmp, 0x1800, mOS, 0, mOS.length);
+			}
+		}
+
 		set10KChecksum();
 	}
 	

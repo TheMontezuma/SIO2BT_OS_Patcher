@@ -13,6 +13,8 @@ static int HISIO = 0xCC30;
 // address of SIO code in XL ROM
 static int XL_SIO = 0xE971;
 
+// address of SIO code in OLD OS ROM
+static int OLD_SIO = 0xE959;
 
 static byte[] newcode = {
 		(byte)0xea, // NOP
@@ -24,6 +26,11 @@ static byte[] xl_oldcode = {
 		(byte)0x4c, // JMP
 		(byte)((XL_SIO+4) & 0xff),
 		(byte)((XL_SIO+4) >> 8 )};
+
+static byte[] old_oldcode = {
+		(byte)0x4c, // JMP
+		(byte)((OLD_SIO+4) & 0xff),
+		(byte)((OLD_SIO+4) >> 8 )};
 	
 static byte[] hispeed_code = {
   (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
