@@ -28,9 +28,7 @@ public class Patcher
 		eBB1R2,  // 800XL
 		eBB1R3,  // XE
 		eBB1R4,  // XEGS
-		eQMEG,   // QMEG
-		eBB1R2HS,// 800XL + HI-SPEED patch
-		eBB1R3HS // XE + HI-SPEED patch
+		eQMEG    // QMEG
 	}
 	
 	// FREE MEMORY
@@ -58,6 +56,10 @@ public class Patcher
 			(byte)0x4c	};						// CSEXIT JMP RES ;continue with the system reset vectors
 
 	private byte BASIC_OFF = (byte)0xD0;
+	
+	private static int HS_CRETRI1 = 0xCD2E;
+	private static int HS_CRETRI2 = 0xCE56;
+	private static int HS_CTIM = 0xCE88;
 	
 	private static int OLD_CRETRI1 = 0xE975;
 	private static int OLD_CRETRI2 = 0xE9CC;
@@ -133,20 +135,6 @@ public class Patcher
 	private static int BB1R2_BAS_SELECTION = 0xC49F;
 	private static String BB1R2_NAME = "800XL: BB000001 Rev. 2 (1983-05-10)";
 
-	private static int BB1R2HS_CH1 = 0x5C5F;
-	private static int BB1R2HS_CH2 = 0x6D7A;
-	private static int BB1R2HS_CRETRI1 = 0xCCEB;
-	private static int BB1R2HS_CRETRI2 = 0xCE13;
-	private static int BB1R2HS_CTIM = 0xCE45;
-	private static String BB1R2HS_NAME = "800XL: BB000001 Rev. 2 (1983-05-10) HI-SPEED";
-
-	private static int BB1R3HS_CH1 = 0x53C4;
-	private static int BB1R3HS_CH2 = 0x7163;
-	private static int BB1R3HS_CRETRI1 = 0xCCEB;
-	private static int BB1R3HS_CRETRI2 = 0xCE13;
-	private static int BB1R3HS_CTIM = 0xCE45;
-	private static String BB1R3HS_NAME = "XE: BB000001 Rev. 3 (1985-03-01) HI-SPEED";
-	
 	private static int BB1R3_VER = 1;
 	private static int BB1R3_REV = 3;
 	private static int BB1R3_CH1 = 0x8976;
@@ -259,16 +247,6 @@ public class Patcher
 		{
 			mOSType = eOSType.eBB1R2;
 			mOSName = BB1R2_NAME;
-		}
-		else if(BB1R2_VER==ver && BB1R2_REV==rev && BB1R2HS_CH1==checksum1 && BB1R2HS_CH2==checksum2 && is16KChecksumOK(checksum1, checksum2))
-		{
-			mOSType = eOSType.eBB1R2HS;
-			mOSName = BB1R2HS_NAME;
-		}
-		else if(BB1R3_VER==ver && BB1R3_REV==rev && BB1R3HS_CH1==checksum1 && BB1R3HS_CH2==checksum2 && is16KChecksumOK(checksum1, checksum2))
-		{
-			mOSType = eOSType.eBB1R3HS;
-			mOSName = BB1R3HS_NAME;
 		}
 		else if(BB1R3_VER==ver && BB1R3_REV==rev && BB1R3_CH1==checksum1 && BB1R3_CH2==checksum2 && is16KChecksumOK(checksum1, checksum2))
 		{
@@ -396,8 +374,6 @@ public class Patcher
 		case eBB1R2:
 		case eBB1R3:
 		case eBB1R4:
-		case eBB1R2HS:
-		case eBB1R3HS:
 			return true;
 		default:
 			return false;
@@ -411,7 +387,6 @@ public class Patcher
 		case eAA0R10:
 		case eBB0R1:
 		case eBB1R2:
-		case eBB1R2HS:
 			return true;
 		default:
 			return false;
@@ -496,14 +471,8 @@ public class Patcher
 		case eBB1R2:
 			patch16KOS(BB1R2_CRETRI1, BB1R2_CRETRI2, BB1R2_CTIM, BB1R2_PHR, BB1R2_CSRES, BB1R2_BAS_SELECTION);
 			break;
-		case eBB1R2HS:
-			patch16KHSOS(BB1R2_CRETRI1, BB1R2_CRETRI2, BB1R2_CTIM, BB1R2HS_CRETRI1, BB1R2HS_CRETRI2, BB1R2HS_CTIM, BB1R2_PHR, BB1R2_CSRES, BB1R2_BAS_SELECTION);
-			break;
 		case eBB1R3:
 			patch16KOS(BB1R3_CRETRI1, BB1R3_CRETRI2, BB1R3_CTIM, BB1R3_PHR, BB1R3_CSRES, BB1R3_BAS_SELECTION);
-			break;
-		case eBB1R3HS:
-			patch16KHSOS(BB1R3_CRETRI1, BB1R3_CRETRI2, BB1R3_CTIM, BB1R3HS_CRETRI1, BB1R3HS_CRETRI2, BB1R3HS_CTIM, BB1R3_PHR, BB1R3_CSRES, BB1R3_BAS_SELECTION);
 			break;
 		case eBB1R4:
 			patch16KOS(BB1R4_CRETRI1, BB1R4_CRETRI2, BB1R4_CTIM, BB1R4_PHR, BB1R4_CSRES, BB1R4_BAS_SELECTION);
@@ -578,9 +547,9 @@ public class Patcher
 				System.arraycopy(HiSpeed.hispeed_code, 0, tmp, HiSpeed.HIBASE-offset, HiSpeed.hispeed_code.length);
 				
 				// patch timeout and retries in HI SPEED code
-				tmp[0xCD29-offset] = (byte)mRetry;
-				tmp[0xCE51-offset] = (byte)mRetry;
-				tmp[0xCE83-offset] = (byte)mTimeout;
+				tmp[HS_CRETRI1-offset] = (byte)mRetry;
+				tmp[HS_CRETRI2-offset] = (byte)mRetry;
+				tmp[HS_CTIM-offset] = (byte)mTimeout;
 				
 				// copy old standard SIO code to highspeed SIO code
 				System.arraycopy(tmp, HiSpeed.OLD_SIO-offset, tmp, HiSpeed.HISTDSIO-offset, HiSpeed.newcode.length);
@@ -652,9 +621,9 @@ public class Patcher
 				System.arraycopy(HiSpeed.hispeed_code, 0, mOS, HiSpeed.HIBASE-offset, HiSpeed.hispeed_code.length);
 				
 				// patch timeout and retries in HI SPEED code
-				mOS[0xCD29-offset] = (byte)mRetry;
-				mOS[0xCE51-offset] = (byte)mRetry;
-				mOS[0xCE83-offset] = (byte)mTimeout;
+				mOS[HS_CRETRI1-offset] = (byte)mRetry;
+				mOS[HS_CRETRI2-offset] = (byte)mRetry;
+				mOS[HS_CTIM-offset] = (byte)mTimeout;
 				
 				// copy old standard SIO code to highspeed SIO code
 				System.arraycopy(mOS, HiSpeed.XL_SIO-offset, mOS, HiSpeed.HISTDSIO-offset, HiSpeed.newcode.length);
@@ -664,57 +633,6 @@ public class Patcher
 
 				// change old SIO code
 				System.arraycopy(HiSpeed.newcode, 0, mOS, HiSpeed.XL_SIO-offset, HiSpeed.newcode.length);
-			}
-		}
-		
-		set16KChecksum();
-	}
-	
-	// XL HI-SPEED
-	private void patch16KHSOS(int CRETRI1, int CRETRI2, int CTIM, int CRETRIHS1, int CRETRIHS2, int CTIMHS, int PHR, int CSRES, int BAS_SEL)
-	{
-		int offset = 0xC000;
-		mOS[CRETRI1-offset] = (byte)mRetry;
-		mOS[CRETRI2-offset] = (byte)mRetry;
-		mOS[CTIM-offset]    = (byte)mTimeout;
-		mOS[CRETRIHS1-offset] = (byte)mRetry;
-		mOS[CRETRIHS2-offset] = (byte)mRetry;
-		mOS[CTIMHS-offset]    = (byte)mTimeout;
-		
-		if(mDisableNewPoll)
-		{
-			mOS[PHR+0-offset]   = (byte)0xEA;
-			mOS[PHR+1-offset]   = (byte)0xEA;
-			mOS[PHR+2-offset]   = (byte)0xEA;
-		}
-
-		if(mEnableColdStart)
-		{
-			byte res_low  = mOS[0x3ffc];
-			byte res_high = mOS[0x3ffd];
-			
-			if(mResetAtarimax)
-			{
-				System.arraycopy(CSAM_RESET_PROC, 0, mOS, CSRES-offset, CSAM_RESET_PROC.length);
-				mOS[CSRES+CSAM_RESET_PROC.length-offset] = res_low;
-				mOS[CSRES+CSAM_RESET_PROC.length+1-offset] = res_high;
-			}
-			else
-			{
-				System.arraycopy(CS_RESET_PROC, 0, mOS, CSRES-offset, CS_RESET_PROC.length);
-				mOS[CSRES+CS_RESET_PROC.length-offset] = res_low;
-				mOS[CSRES+CS_RESET_PROC.length+1-offset] = res_high;
-			}
-			
-			mOS[0x3ffc] = (byte)(CSRES & 0xFF);
-			mOS[0x3ffd] = (byte)((CSRES >> 8) & 0xFF);
-		}
-
-		if(isBasicInvertable())
-		{
-			if(mDisableBasic)
-			{
-				mOS[BAS_SEL-offset] = BASIC_OFF;
 			}
 		}
 		

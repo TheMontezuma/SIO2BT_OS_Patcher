@@ -45,6 +45,6 @@ In that case you have to keep OPTION key pressed at start-up to activate BASIC.
 
 Enable HiSpeed
 --------------
-You can patch XL and XE OS ROMs with a modified HighSpeed patch from HIAS (https://www.horus.com/~hias/atari/#hipatch).
-The original HIAS's patch applies only to Disk Drives and does not support SIO2BT.
-I created a fork of the source code repository (https://github.com/TheMontezuma/highspeed-sio) and added support for all SIO devices (SIO2BT emulates also SmartDevice and NetworkingDevice) and adapted baudrate detection to support SIO2BT.
+You can patch XL and XE OS ROMs with the HighSpeed patch from HIAS (https://github.com/HiassofT/highspeed-sio).
+The patchrom tool has now -b parameter to support SIO2BT for all SIO devices (SIO2BT emulates also SmartDevice and NetworkingDevice), including baudrate detection.
+And with the SIO2BT OS Patcher you can apply the same patch.
