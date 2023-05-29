@@ -51,7 +51,7 @@ public class Gui
 	
 	void createAndShow()
 	{
-		mFrame = new JFrame("SIO2BT OS Patcher V3.5 Montezuma 2014-2020, Hi-Speed Code V1.32 HIAS 2020");
+		mFrame = new JFrame("SIO2BT OS Patcher V3.6 Montezuma 2014-2023, Hi-Speed Code V1.33 HIAS 2023");
 		mPanel = new JPanel();
 		mFileLabel = new JLabel("File:                                                                                          ");
 		mOSLabel = new JLabel("OS:");

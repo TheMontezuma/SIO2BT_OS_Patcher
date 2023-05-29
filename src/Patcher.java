@@ -57,10 +57,6 @@ public class Patcher
 
 	private byte BASIC_OFF = (byte)0xD0;
 	
-	private static int HS_CRETRI1 = 0xCD2E;
-	private static int HS_CRETRI2 = 0xCE56;
-	private static int HS_CTIM = 0xCE88;
-	
 	private static int OLD_CRETRI1 = 0xE975;
 	private static int OLD_CRETRI2 = 0xE9CC;
 	private static int OLD_A_CTIM = 0xEC9C;
@@ -546,11 +542,6 @@ public class Patcher
 				// copy highspeed SIO code to ROM OS
 				System.arraycopy(HiSpeed.hispeed_code, 0, tmp, HiSpeed.HIBASE-offset, HiSpeed.hispeed_code.length);
 				
-				// patch timeout and retries in HI SPEED code
-				tmp[HS_CRETRI1-offset] = (byte)mRetry;
-				tmp[HS_CRETRI2-offset] = (byte)mRetry;
-				tmp[HS_CTIM-offset] = (byte)mTimeout;
-				
 				// copy old standard SIO code to highspeed SIO code
 				System.arraycopy(tmp, HiSpeed.OLD_SIO-offset, tmp, HiSpeed.HISTDSIO-offset, HiSpeed.newcode.length);
 
@@ -619,11 +610,6 @@ public class Patcher
 			{
 				// copy highspeed SIO code to ROM OS
 				System.arraycopy(HiSpeed.hispeed_code, 0, mOS, HiSpeed.HIBASE-offset, HiSpeed.hispeed_code.length);
-				
-				// patch timeout and retries in HI SPEED code
-				mOS[HS_CRETRI1-offset] = (byte)mRetry;
-				mOS[HS_CRETRI2-offset] = (byte)mRetry;
-				mOS[HS_CTIM-offset] = (byte)mTimeout;
 				
 				// copy old standard SIO code to highspeed SIO code
 				System.arraycopy(mOS, HiSpeed.XL_SIO-offset, mOS, HiSpeed.HISTDSIO-offset, HiSpeed.newcode.length);
